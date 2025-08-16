@@ -1,34 +1,29 @@
-
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>Scoreboard</title>
-<style>
-  body { background: #111; color: white; font-family: Arial; display: flex; justify-content: space-around; align-items: center; height: 100vh; margin:0;}
-  .player { text-align: center; font-size: 4em;}
-  .score { font-size: 5em; margin-top: 0.2em;}
-</style>
+  <meta charset="UTF-8">
+  <title>Scoreboard Display</title>
+  <script src="/socket.io/socket.io.js"></script>
+  <style>
+    body { font-family: sans-serif; text-align: center; padding: 50px; background: #111; color: #fff; }
+    .scoreboard { font-size: 2em; margin-top: 20px; }
+    .player { margin: 10px 0; }
+  </style>
 </head>
 <body>
-  <div class="player">
-    <div id="name1">Player 1</div>
-    <div id="score1" class="score">0</div>
-  </div>
-  <div class="player">
-    <div id="name2">Player 2</div>
-    <div id="score2" class="score">0</div>
+  <h1>📺 Scoreboard</h1>
+  <div class="scoreboard">
+    <div id="player1" class="player">Player 1: 0</div>
+    <div id="player2" class="player">Player 2: 0</div>
   </div>
 
-<script src="/socket.io/socket.io.js"></script>
-<script>
-const socket = io();
-socket.on('scoreUpdate', (data) => {
-  document.getElementById('name1').textContent = data.name1;
-  document.getElementById('score1').textContent = data.score1;
-  document.getElementById('name2').textContent = data.name2;
-  document.getElementById('score2').textContent = data.score2;
-});
-</script>
+  <script>
+    const socket = io();
+
+    socket.on("updateScreen", (data) => {
+      document.getElementById("player1").innerText = `${data.name1}: ${data.score1}`;
+      document.getElementById("player2").innerText = `${data.name2}: ${data.score2}`;
+    });
+  </script>
 </body>
 </html>

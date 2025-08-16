@@ -1,18 +1,28 @@
+const express = require("express");
+const http = require("http");
+const { Server } = require("socket.io");
 
-const express = require('express');
 const app = express();
-const http = require('http').Server(app);
-const io = require('socket.io')(http);
+const server = http.createServer(app);
+const io = new Server(server);
 
-app.use(express.static('public'));
+app.use(express.static("public"));
 
-io.on('connection', (socket) => {
-  console.log('a user connected');
-  socket.on('updateScore', (data) => {
-    io.emit('scoreUpdate', data);
+// Слушаем подключения
+io.on("connection", (socket) => {
+  console.log("A user connected");
+
+  // Получаем данные от оператора и пересылаем экрану
+  socket.on("updateData", (data) => {
+    io.emit("updateScreen", data);
+  });
+
+  socket.on("disconnect", () => {
+    console.log("A user disconnected");
   });
 });
 
-http.listen(3000, () => {
-  console.log('listening on *:3000');
+const PORT = process.env.PORT || 3000;
+server.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
 });

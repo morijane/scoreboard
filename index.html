@@ -4,107 +4,47 @@
 <meta charset="UTF-8">
 <title>Дисплей</title>
 <style>
-body {
-    margin: 0;
-    background: black;
-    color: cyan;
-    font-family: Arial, sans-serif;
-    display: flex;
-    height: 100vh;
-}
-
-.player {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    border-right: 2px solid #222;
-}
-
-.player:last-child {
-    border-right: none;
-}
-
-.name {
-    font-size: 3em;
-    margin-bottom: 20px;
-}
-
-.points {
-    font-size: 5em;
-    font-weight: bold;
-}
-
-.team {
-    font-size: 2em;
-    margin-top: 10px;
-}
-
-/* Экран победителя */
-#winnerScreen {
-    position: fixed;
-    top: 0; left: 0;
-    width: 100%; height: 100%;
-    background: red;
-    color: white;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    font-size: 6em;
-    font-weight: bold;
-    z-index: 999;
-    opacity: 0;
-    transition: opacity 0.5s ease-in-out;
-}
-#winnerScreen.show {
-    opacity: 1;
-}
+  body { margin: 0; font-family: 'Orbitron', sans-serif; }
+  #container { display: flex; height: 100vh; }
+  .player { flex: 1; background: black; color: cyan; display: flex; flex-direction: column; justify-content: center; align-items: center; font-size: 60px; }
+  .team { font-size: 36px; margin-top: 20px; }
 </style>
 </head>
 <body>
-<div id="player1" class="player">
-    <div class="name" id="name1">Игрок 1</div>
-    <div class="points" id="points1">0</div>
+<div id="container">
+  <div class="player">
+    <div id="name1">Игрок 1</div>
+    <div id="points1">0</div>
     <div class="team" id="team1">БЕЛЫЙ</div>
-</div>
-<div id="player2" class="player">
-    <div class="name" id="name2">Игрок 2</div>
-    <div class="points" id="points2">0</div>
+  </div>
+  <div class="player">
+    <div id="name2">Игрок 2</div>
+    <div id="points2">0</div>
     <div class="team" id="team2">КРАСНЫЙ</div>
+  </div>
 </div>
-
-<!-- Победитель -->
-<div id="winnerScreen"></div>
-
+<div id="winnerOverlay" style="position:fixed;top:0;left:0;width:100%;height:100%;background:red;color:white;display:none;justify-content:center;align-items:center;font-size:150px;font-weight:bold;z-index:100;text-align:center;">WIN</div>
 <script>
-async function fetchData(){
+async function updateDisplay() {
+  try {
     const res = await fetch('/data');
-    const data = await res.json();
+    const state = await res.json();
+    document.getElementById('name1').textContent = state.name1;
+    document.getElementById('points1').textContent = state.points1;
+    document.getElementById('team1').textContent = state.team1;
+    document.getElementById('name2').textContent = state.name2;
+    document.getElementById('points2').textContent = state.points2;
+    document.getElementById('team2').textContent = state.team2;
 
-    document.getElementById('name1').textContent = data.name1 || 'Игрок 1';
-    document.getElementById('points1').textContent = data.points1 ?? 0;
-    document.getElementById('team1').textContent = data.team1 || 'БЕЛЫЙ';
-
-    document.getElementById('name2').textContent = data.name2 || 'Игрок 2';
-    document.getElementById('points2').textContent = data.points2 ?? 0;
-    document.getElementById('team2').textContent = data.team2 || 'КРАСНЫЙ';
-
-    const winnerScreen = document.getElementById('winnerScreen');
-    if(data.showWinner && data.winnerName){
-        winnerScreen.textContent = data.winnerName;
-        winnerScreen.classList.add('show');
+    if(state.showWinner){
+      document.getElementById('winnerOverlay').textContent = state.winnerName + " WIN";
+      document.getElementById('winnerOverlay').style.display = 'flex';
     } else {
-        winnerScreen.classList.remove('show');
-        winnerScreen.textContent = '';
+      document.getElementById('winnerOverlay').style.display = 'none';
     }
-
-    if(data.page === 'wheel.html'){
-        window.location.href = 'wheel.html';
-    }
+  } catch(e){ console.error(e); }
 }
-
-setInterval(fetchData, 1000);
+setInterval(updateDisplay, 500);
 </script>
 </body>
 </html>

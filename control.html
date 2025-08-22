@@ -1,71 +1,67 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8">
-  <title>Панель управления</title>
-  <style>
-    body { font-family: sans-serif; padding: 20px; background: #111; color: white; }
-    input, button { margin: 5px; padding: 10px; font-size: 16px; }
-    button { cursor: pointer; border-radius: 8px; border: none; }
-    .red { background: red; color: white; }
-    .green { background: green; color: white; }
-    .blue { background: dodgerblue; color: white; }
-  </style>
+<meta charset="UTF-8">
+<title>Панель управления</title>
+<style>
+body { font-family: 'Orbitron', sans-serif; background: #111; color: white; }
+input { font-size: 24px; margin: 5px; }
+button { font-size: 24px; margin: 5px; padding: 10px 20px; cursor: pointer; }
+</style>
 </head>
 <body>
-  <h1>Панель управления</h1>
+<h1>Панель управления</h1>
 
-  <div>
-    <label>Игрок 1: <input id="name1" placeholder="Имя игрока 1"></label>
-    <input id="score1" type="number" placeholder="Баллы игрока 1">
-  </div>
-  <div>
-    <label>Игрок 2: <input id="name2" placeholder="Имя игрока 2"></label>
-    <input id="score2" type="number" placeholder="Баллы игрока 2">
-  </div>
+<div>
+  <h2>Игрок 1</h2>
+  Имя: <input id="name1" value="Игрок 1"><br>
+  Баллы: <input id="points1" type="number" value="0"><br>
+  <button onclick="updatePlayer(1)">Обновить Игрока 1</button>
+</div>
 
-  <button class="green" onclick="setWinner(1)">Игрок 1 победил</button>
-  <button class="green" onclick="setWinner(2)">Игрок 2 победил</button>
-  <br><br>
+<div>
+  <h2>Игрок 2</h2>
+  Имя: <input id="name2" value="Игрок 2"><br>
+  Баллы: <input id="points2" type="number" value="0"><br>
+  <button onclick="updatePlayer(2)">Обновить Игрока 2</button>
+</div>
 
-  <button class="blue" onclick="setPage('index')">Счётчик</button>
-  <button class="blue" onclick="setPage('wheel')">Колесо</button>
-  <button class="red" onclick="spinWheel()">Крутить колесо</button>
+<div>
+  <h2>Победитель</h2>
+  <button onclick="setWinner('Игрок 1')">Игрок 1 WIN</button>
+  <button onclick="setWinner('Игрок 2')">Игрок 2 WIN</button>
+</div>
 
-  <script>
-    async function updateState(newState) {
-      let res = await fetch('/state.json');
-      let state = await res.json();
-      Object.assign(state, newState);
-      await fetch('/update', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(state)
-      });
-    }
+<div>
+  <h2>Страницы</h2>
+  <button onclick="changePage('index.html')">Дисплей</button>
+  <button onclick="changePage('wheel.html')">Колесо</button>
+</div>
 
-    function setWinner(num) {
-      const name = document.getElementById('name' + num).value || ('Игрок ' + num);
-      updateState({ winner: name });
-    }
+<script>
+async function postData(url, data){
+  await fetch(url, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(data)});
+}
 
-    function setPage(p) {
-      updateState({ page: p });
-    }
+function updatePlayer(player){
+  const data = {};
+  if(player===1){
+    data.name1 = document.getElementById('name1').value;
+    data.points1 = Number(document.getElementById('points1').value);
+  } else {
+    data.name2 = document.getElementById('name2').value;
+    data.points2 = Number(document.getElementById('points2').value);
+  }
+  postData('/data', data);
+}
 
-    function spinWheel() {
-      updateState({ page: 'wheel', spin: true });
-    }
+function setWinner(name){
+  postData('/winner', { winnerName: name });
+}
 
-    // Автообновление имен и очков
-    setInterval(() => {
-      updateState({
-        player1: document.getElementById('name1').value,
-        score1: parseInt(document.getElementById('score1').value) || 0,
-        player2: document.getElementById('name2').value,
-        score2: parseInt(document.getElementById('score2').value) || 0,
-      });
-    }, 2000);
-  </script>
+function changePage(page){
+  postData('/page', { page });
+}
+</script>
 </body>
 </html>

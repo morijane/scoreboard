@@ -218,5 +218,31 @@ resultOverlay.addEventListener('click', () => {
   resultOverlay.style.display = 'none';
 });
 </script>
+
+  <script>
+async function refreshWheel(){
+    try {
+        const res = await fetch('/data');
+        const data = await res.json();
+
+        // Если сервер сказал перейти на дисплей
+        if(data.page === "index") {
+            window.location.href = '/index.html';
+            return;
+        }
+
+        // Если нужно крутить колесо
+        if(data.spin){
+            spin(); // твоя функция spin()
+            await fetch('/data', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({spin:false})});
+        }
+    } catch(e){ console.error(e); }
+}
+setInterval(refreshWheel, 500);
+
+// Также оставляем локальную кнопку spin на странице колесо
+document.getElementById('spinBtn').addEventListener('click', spin);
+</script>
+
 </body>
 </html>

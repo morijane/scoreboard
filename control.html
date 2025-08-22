@@ -88,7 +88,6 @@ function setWinner(player) {
 // Переход на колесо
 function goToWheel() {
   window.location.href = '/wheel.html';
-  // Сохраняем состояние страницы на сервере
   postData('/page', { page: 'wheel.html' });
 }
 
@@ -102,19 +101,6 @@ function goToIndex() {
 function spinWheel() {
   postData('/data', { spin: true });
 }
-
-// Автообновление input-полей панели каждые 500мс
-async function refreshPanel() {
-  try {
-    const res = await fetch('/data');
-    const state = await res.json();
-    document.getElementById('name1').value = state.name1;
-    document.getElementById('points1').value = state.points1;
-    document.getElementById('name2').value = state.name2;
-    document.getElementById('points2').value = state.points2;
-  } catch(e){ console.error(e); }
-}
-setInterval(refreshPanel, 500);
 </script>
 </body>
 </html>

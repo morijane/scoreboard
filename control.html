@@ -4,38 +4,62 @@
 <meta charset="UTF-8">
 <title>Панель управления</title>
 <style>
-body { font-family: 'Orbitron', sans-serif; background: #111; color: white; }
-input { font-size: 24px; margin: 5px; }
-button { font-size: 24px; margin: 5px; padding: 10px 20px; cursor: pointer; }
+body {
+  margin: 0;
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: #111;
+  font-family: 'Orbitron', sans-serif;
+  color: white;
+}
+.container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+}
+input {
+  font-size: 24px;
+  margin: 5px;
+  width: 200px;
+  text-align: center;
+}
+button {
+  font-size: 24px;
+  margin: 5px;
+  padding: 10px 20px;
+  cursor: pointer;
+}
+h1, h2 { text-align: center; }
 </style>
 </head>
 <body>
-<h1>Панель управления</h1>
+<div class="container">
+  <h1>Панель управления</h1>
 
-<div>
-  <h2>Игрок 1</h2>
-  Имя: <input id="name1" value="Игрок 1"><br>
-  Баллы: <input id="points1" type="number" value="0"><br>
-  <button onclick="updatePlayer(1)">Обновить Игрока 1</button>
-</div>
+  <div>
+    <h2>Игроки</h2>
+    Имя Игрок 1: <input id="name1" value="Игрок 1"><br>
+    Баллы Игрок 1: <input id="points1" type="number" value="0"><br>
+    Имя Игрок 2: <input id="name2" value="Игрок 2"><br>
+    Баллы Игрок 2: <input id="points2" type="number" value="0"><br>
+    <button onclick="updateDisplay()">Обновить дисплей</button>
+  </div>
 
-<div>
-  <h2>Игрок 2</h2>
-  Имя: <input id="name2" value="Игрок 2"><br>
-  Баллы: <input id="points2" type="number" value="0"><br>
-  <button onclick="updatePlayer(2)">Обновить Игрока 2</button>
-</div>
+  <div>
+    <h2>Победитель</h2>
+    <button onclick="setWinner('Игрок 1')">Игрок 1 WIN</button>
+    <button onclick="setWinner('Игрок 2')">Игрок 2 WIN</button>
+  </div>
 
-<div>
-  <h2>Победитель</h2>
-  <button onclick="setWinner('Игрок 1')">Игрок 1 WIN</button>
-  <button onclick="setWinner('Игрок 2')">Игрок 2 WIN</button>
-</div>
-
-<div>
-  <h2>Страницы</h2>
-  <button onclick="changePage('index.html')">Дисплей</button>
-  <button onclick="changePage('wheel.html')">Колесо</button>
+  <div>
+    <h2>Страницы</h2>
+    <button onclick="goToWheel()">Перейти на колесо</button>
+    <button onclick="spinWheel()">Крутить колесо</button>
+    <button onclick="goToIndex()">Вернуться на дисплей</button>
+  </div>
 </div>
 
 <script>
@@ -43,25 +67,54 @@ async function postData(url, data){
   await fetch(url, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(data)});
 }
 
-function updatePlayer(player){
-  const data = {};
-  if(player===1){
-    data.name1 = document.getElementById('name1').value;
-    data.points1 = Number(document.getElementById('points1').value);
-  } else {
-    data.name2 = document.getElementById('name2').value;
-    data.points2 = Number(document.getElementById('points2').value);
-  }
+// Обновление обоих игроков
+function updateDisplay() {
+  const data = {
+    name1: document.getElementById('name1').value,
+    points1: Number(document.getElementById('points1').value),
+    name2: document.getElementById('name2').value,
+    points2: Number(document.getElementById('points2').value),
+    showWinner: false
+  };
   postData('/data', data);
 }
 
-function setWinner(name){
-  postData('/winner', { winnerName: name });
+// Объявление победителя
+function setWinner(player) {
+  let winnerName = document.getElementById(player==='Игрок 1'?'name1':'name2').value;
+  postData('/winner', { winnerName });
 }
 
-function changePage(page){
-  postData('/page', { page });
+// Переход на колесо
+function goToWheel() {
+  window.location.href = '/wheel.html';
+  // Сохраняем состояние страницы на сервере
+  postData('/page', { page: 'wheel.html' });
 }
+
+// Переход на дисплей
+function goToIndex() {
+  window.location.href = '/index.html';
+  postData('/page', { page: 'index.html' });
+}
+
+// Крутить колесо напрямую через сервер
+function spinWheel() {
+  postData('/data', { spin: true });
+}
+
+// Автообновление input-полей панели каждые 500мс
+async function refreshPanel() {
+  try {
+    const res = await fetch('/data');
+    const state = await res.json();
+    document.getElementById('name1').value = state.name1;
+    document.getElementById('points1').value = state.points1;
+    document.getElementById('name2').value = state.name2;
+    document.getElementById('points2').value = state.points2;
+  } catch(e){ console.error(e); }
+}
+setInterval(refreshPanel, 500);
 </script>
 </body>
 </html>

@@ -5,9 +5,8 @@ const PORT = process.env.PORT || 3000;
 
 app.use(cors());
 app.use(express.json());
-app.use(express.static('.')); // раздаём все файлы в текущей папке
+app.use(express.static('.'));
 
-// начальное состояние дисплея
 let displayData = {
     name1: "Игрок 1",
     points1: 0,
@@ -17,39 +16,32 @@ let displayData = {
     team2: "КРАСНЫЙ",
     showWinner: false,
     winnerName: "",
-    page: "index" // по умолчанию показываем index.html
+    page: "index",   // "index" или "wheel"
+    spin: false      // флаг крутки колеса
 };
 
-// получаем текущее состояние (для дисплея или wheel)
+// Получить состояние дисплея
 app.get('/data', (req, res) => {
     res.json(displayData);
 });
 
-// обновляем состояние с панели управления
+// Обновить данные с панели
 app.post('/data', (req, res) => {
     displayData = { ...displayData, ...req.body };
     res.json({ status: "ok", displayData });
 });
 
-// отдельный эндпоинт для смены страницы
-app.post('/page', (req, res) => {
-    if(req.body.page) {
-        displayData.page = req.body.page;
-        res.json({ status: "ok", page: displayData.page });
-    } else {
-        res.status(400).json({ status: "error", message: "No page provided" });
-    }
+// Обновить победителя
+app.post('/winner', (req, res) => {
+    displayData.showWinner = true;
+    displayData.winnerName = req.body.winnerName || "";
+    res.json({ status: "ok", displayData });
 });
 
-// отдельный эндпоинт для объявления победителя
-app.post('/winner', (req, res) => {
-    if(req.body.winnerName) {
-        displayData.showWinner = true;
-        displayData.winnerName = req.body.winnerName;
-        res.json({ status: "ok", winnerName: displayData.winnerName });
-    } else {
-        res.status(400).json({ status: "error", message: "No winnerName provided" });
-    }
+// Обновить страницу
+app.post('/page', (req, res) => {
+    displayData.page = req.body.page || "index";
+    res.json({ status: "ok", displayData });
 });
 
 app.listen(PORT, () => {

@@ -4,54 +4,107 @@
 <meta charset="UTF-8">
 <title>Дисплей</title>
 <style>
-html, body { margin:0; padding:0; height:100%; background-color:black; font-family:Arial; color:cyan; overflow:hidden; }
-.half { position:absolute; top:0; width:50%; height:100%; display:flex; flex-direction:column; justify-content:center; align-items:center; border:2px solid cyan; box-sizing:border-box; }
-#left { left:0; } #right { right:0; }
-.name { font-size:4em; margin:0; text-align:center; }
-.team { font-size:2em; margin:5px 0; text-align:center; }
-.points { font-size:3em; margin:0; text-align:center; }
-#winner { position:absolute; top:0; left:0; width:100%; height:100%; background-color:red; color:white; display:flex; justify-content:center; align-items:center; font-size:5em; text-align:center; z-index:10; opacity:0; transform:scale(0.5); transition: opacity 1s ease, transform 1s ease; }
-#winner.show { opacity:1; transform:scale(1); }
+body {
+    margin: 0;
+    background: black;
+    color: cyan;
+    font-family: Arial, sans-serif;
+    display: flex;
+    height: 100vh;
+}
+
+.player {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    border-right: 2px solid #222;
+}
+
+.player:last-child {
+    border-right: none;
+}
+
+.name {
+    font-size: 3em;
+    margin-bottom: 20px;
+}
+
+.points {
+    font-size: 5em;
+    font-weight: bold;
+}
+
+.team {
+    font-size: 2em;
+    margin-top: 10px;
+}
+
+/* Экран победителя */
+#winnerScreen {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: red;
+    color: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 6em;
+    font-weight: bold;
+    z-index: 999;
+    opacity: 0;
+    transition: opacity 0.5s ease-in-out;
+}
+#winnerScreen.show {
+    opacity: 1;
+}
 </style>
 </head>
 <body>
-<div class="half" id="left">
-    <h1 class="name" id="name1">Игрок 1</h1>
-    <p class="team" id="team1">БЕЛЫЙ</p>
-    <h2 class="points" id="points1">0</h2>
+<div id="player1" class="player">
+    <div class="name" id="name1">Игрок 1</div>
+    <div class="points" id="points1">0</div>
+    <div class="team" id="team1">БЕЛЫЙ</div>
 </div>
-<div class="half" id="right">
-    <h1 class="name" id="name2">Игрок 2</h1>
-    <p class="team" id="team2">КРАСНЫЙ</p>
-    <h2 class="points" id="points2">0</h2>
+<div id="player2" class="player">
+    <div class="name" id="name2">Игрок 2</div>
+    <div class="points" id="points2">0</div>
+    <div class="team" id="team2">КРАСНЫЙ</div>
 </div>
-<div id="winner"></div>
+
+<!-- Победитель -->
+<div id="winnerScreen"></div>
+
 <script>
 async function fetchData(){
-    const res=await fetch('/data');
-    const data=await res.json();
-    if(data.showWinner){
-        const winnerDiv=document.getElementById('winner');
-        winnerDiv.innerText=data.winnerName;
-        document.getElementById('left').style.display='none';
-        document.getElementById('right').style.display='none';
-        setTimeout(()=>winnerDiv.classList.add('show'),50);
+    const res = await fetch('/data');
+    const data = await res.json();
+
+    document.getElementById('name1').textContent = data.name1 || 'Игрок 1';
+    document.getElementById('points1').textContent = data.points1 ?? 0;
+    document.getElementById('team1').textContent = data.team1 || 'БЕЛЫЙ';
+
+    document.getElementById('name2').textContent = data.name2 || 'Игрок 2';
+    document.getElementById('points2').textContent = data.points2 ?? 0;
+    document.getElementById('team2').textContent = data.team2 || 'КРАСНЫЙ';
+
+    const winnerScreen = document.getElementById('winnerScreen');
+    if(data.showWinner && data.winnerName){
+        winnerScreen.textContent = data.winnerName;
+        winnerScreen.classList.add('show');
     } else {
-        document.getElementById('winner').classList.remove('show');
-        document.getElementById('winner').style.opacity=0;
-        document.getElementById('left').style.display='flex';
-        document.getElementById('right').style.display='flex';
-        document.getElementById('name1').innerText=data.name1;
-        document.getElementById('points1').innerText=data.points1;
-        document.getElementById('team1').innerText=data.team1;
-        document.getElementById('name2').innerText=data.name2;
-        document.getElementById('points2').innerText=data.points2;
-        document.getElementById('team2').innerText=data.team2;
+        winnerScreen.classList.remove('show');
+        winnerScreen.textContent = '';
     }
-    if(data.page){ window.location.href=data.page; }
+
+    if(data.page === 'wheel.html'){
+        window.location.href = 'wheel.html';
+    }
 }
-setInterval(fetchData,500);
-fetchData();
+
+setInterval(fetchData, 1000);
 </script>
 </body>
 </html>

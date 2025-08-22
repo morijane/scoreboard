@@ -63,8 +63,6 @@ h1, h2 { text-align: center; }
 </div>
 
 <script>
-let displayWindow = null;
-
 async function postData(url, data){
   await fetch(url, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(data)});
 }
@@ -87,32 +85,19 @@ function setWinner(player) {
   postData('/winner', { winnerName });
 }
 
-// Открытие колесо или дисплей в отдельном окне
+// Переход на колесо через сервер
 function goToWheel() {
-  if(displayWindow==null || displayWindow.closed){
-    displayWindow = window.open('/wheel.html', 'displayWindow');
-  } else {
-    displayWindow.location.href = '/wheel.html';
-    displayWindow.focus();
-  }
-  postData('/page', { page: 'wheel.html' });
+  postData('/page', { page: 'wheel' });
 }
 
+// Переход на дисплей через сервер
 function goToIndex() {
-  if(displayWindow==null || displayWindow.closed){
-    displayWindow = window.open('/index.html', 'displayWindow');
-  } else {
-    displayWindow.location.href = '/index.html';
-    displayWindow.focus();
-  }
-  postData('/page', { page: 'index.html' });
+  postData('/page', { page: 'index' });
 }
 
-// Крутить колесо через окно
+// Крутить колесо через сервер
 function spinWheel() {
-  if(displayWindow && !displayWindow.closed){
-    displayWindow.postMessage({ action: 'spin' }, '*');
-  }
+  postData('/data', { spin: true });
 }
 </script>
 </body>

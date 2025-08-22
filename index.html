@@ -46,5 +46,32 @@ async function updateDisplay() {
 }
 setInterval(updateDisplay, 500);
 </script>
+  <script>
+async function refreshDisplay(){
+    try {
+        const res = await fetch('/data');
+        const data = await res.json();
+
+        // Если сервер сказал перейти на колесо
+        if(data.page === "wheel") {
+            window.location.href = '/wheel.html';
+            return;
+        }
+
+        // Обновляем имена и баллы
+        document.getElementById('name1').textContent = data.name1;
+        document.getElementById('points1').textContent = data.points1;
+        document.getElementById('name2').textContent = data.name2;
+        document.getElementById('points2').textContent = data.points2;
+
+        // Отображаем победителя
+        if(data.showWinner){
+            document.body.innerHTML = `<div style="background:red; color:white; font-size:180px; font-weight:bold; display:flex; justify-content:center; align-items:center; height:100vh;">${data.winnerName} WIN</div>`;
+        }
+    } catch(e){ console.error(e); }
+}
+setInterval(refreshDisplay, 500);
+</script>
+
 </body>
 </html>

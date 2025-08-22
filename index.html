@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<title>Дисплей</title>
+<style>
+html, body { margin:0; padding:0; height:100%; background-color:black; font-family:Arial; color:cyan; overflow:hidden; }
+.half { position:absolute; top:0; width:50%; height:100%; display:flex; flex-direction:column; justify-content:center; align-items:center; border:2px solid cyan; box-sizing:border-box; }
+#left { left:0; } #right { right:0; }
+.name { font-size:4em; margin:0; text-align:center; }
+.team { font-size:2em; margin:5px 0; text-align:center; }
+.points { font-size:3em; margin:0; text-align:center; }
+#winner { position:absolute; top:0; left:0; width:100%; height:100%; background-color:red; color:white; display:flex; justify-content:center; align-items:center; font-size:5em; text-align:center; z-index:10; opacity:0; transform:scale(0.5); transition: opacity 1s ease, transform 1s ease; }
+#winner.show { opacity:1; transform:scale(1); }
+</style>
+</head>
+<body>
+<div class="half" id="left">
+    <h1 class="name" id="name1">Игрок 1</h1>
+    <p class="team" id="team1">БЕЛЫЙ</p>
+    <h2 class="points" id="points1">0</h2>
+</div>
+<div class="half" id="right">
+    <h1 class="name" id="name2">Игрок 2</h1>
+    <p class="team" id="team2">КРАСНЫЙ</p>
+    <h2 class="points" id="points2">0</h2>
+</div>
+<div id="winner"></div>
+<script>
+async function fetchData(){
+    const res=await fetch('/data');
+    const data=await res.json();
+    if(data.showWinner){
+        const winnerDiv=document.getElementById('winner');
+        winnerDiv.innerText=data.winnerName;
+        document.getElementById('left').style.display='none';
+        document.getElementById('right').style.display='none';
+        setTimeout(()=>winnerDiv.classList.add('show'),50);
+    } else {
+        document.getElementById('winner').classList.remove('show');
+        document.getElementById('winner').style.opacity=0;
+        document.getElementById('left').style.display='flex';
+        document.getElementById('right').style.display='flex';
+        document.getElementById('name1').innerText=data.name1;
+        document.getElementById('points1').innerText=data.points1;
+        document.getElementById('team1').innerText=data.team1;
+        document.getElementById('name2').innerText=data.name2;
+        document.getElementById('points2').innerText=data.points2;
+        document.getElementById('team2').innerText=data.team2;
+    }
+    if(data.page){ window.location.href=data.page; }
+}
+setInterval(fetchData,500);
+fetchData();
+</script>
+</body>
+</html>

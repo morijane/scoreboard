@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>Колесо фортуны</title>
+  <style>
+    body {
+      margin: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      background: radial-gradient(circle at center, #000 60%, #111 100%);
+      font-family: 'Orbitron', sans-serif;
+      color: white;
+      overflow: hidden;
+    }
+    #main {
+      display: flex;
+      align-items: center;
+      gap: 80px;
+      width: 100%;
+      height: 100%;
+      justify-content: center;
+    }
+    #wheel-container {
+      position: relative;
+      width: 600px;
+      height: 650px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    canvas {
+      border-radius: 50%;
+      display: block;
+      box-shadow: 0 0 40px cyan, inset 0 0 30px rgba(255,255,255,0.3);
+    }
+    #pointer {
+      position: absolute;
+      top: 0;
+      left: 50%;
+      transform: translate(-50%, -90%);
+      width: 0;
+      height: 0;
+      border-left: 25px solid transparent;
+      border-right: 25px solid transparent;
+      border-bottom: 50px solid cyan;
+      filter: drop-shadow(0 0 6px cyan);
+      z-index: 10;
+    }
+    #spinBtn {
+      margin-top: 20px;
+      padding: 25px 60px;
+      font-size: 28px;
+      border: none;
+      border-radius: 20px;
+      cursor: pointer;
+      background: linear-gradient(145deg, #ff1a1a, #cc0000);
+      color: white;
+      font-weight: bold;
+      box-shadow: 0 0 20px red;
+      transition: transform 0.2s, box-shadow 0.3s;
+    }
+    #spinBtn:hover {
+      transform: scale(1.1);
+      box-shadow: 0 0 40px red;
+    }
+    #resultOverlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: red;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 180px;
+      color: white;
+      font-weight: bold;
+      z-index: 100;
+      display: none;
+      text-shadow: 0 0 30px white;
+    }
+    #table {
+      background: rgba(255,255,255,0.1);
+      border: 3px solid red;
+      color: white;
+      padding: 40px;
+      font-size: 36px;
+      line-height: 2;
+      font-weight: bold;
+      border-radius: 15px;
+      backdrop-filter: blur(8px);
+      box-shadow: 0 0 20px red;
+    }
+    #table div {
+      border-bottom: 2px solid rgba(255,0,0,0.5);
+      padding: 10px 0;
+    }
+    #table div:last-child {
+      border-bottom: none;
+    }
+    @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@600&display=swap');
+  </style>
+</head>
+<body>
+  <div id="main">
+    <div id="wheel-container">
+      <div id="pointer"></div>
+      <canvas id="wheel" width="600" height="600"></canvas>
+      <button id="spinBtn">Крутить!</button>
+    </div>
+
+    <div id="table">
+      <div>1) Расстрел</div>
+      <div>2) Взрыв</div>
+      <div>3) Вырезать сердце</div>
+      <div>4) Отравление</div>
+      <div>5) Удушение</div>
+      <div>6) Закалывание</div>
+    </div>
+  </div>
+
+  <div id="resultOverlay"></div>
+
+  <script>
+    const canvas = document.getElementById('wheel');
+    const ctx = canvas.getContext('2d');
+    const resultOverlay = document.getElementById('resultOverlay');
+    const spinBtn = document.getElementById('spinBtn');
+
+    const segments = ["1", "2", "3", "4", "5", "6"];
+    const labels = [
+      "Расстрел",
+      "Взрыв",
+      "Вырезать сердце",
+      "Отравление",
+      "Удушение",
+      "Закалывание"
+    ];
+    const colors = ['#ff1a1a', 'cyan'];
+    const segmentAngle = 2 * Math.PI / segments.length;
+    let currentRotation = 0;
+    let lastIndex = -1;
+
+    function drawWheel() {
+      const radius = canvas.width / 2;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      for (let i = 0; i < segments.length; i++) {
+        ctx.beginPath();
+        ctx.moveTo(radius, radius);
+        ctx.arc(radius, radius, radius, i * segmentAngle, (i + 1) * segmentAngle);
+        ctx.closePath();
+        ctx.fillStyle = colors[i % 2];
+        ctx.fill();
+
+        ctx.save();
+        ctx.translate(radius, radius);
+        const angle = (i + 0.5) * segmentAngle;
+        const textRadius = radius * 0.55;
+        ctx.rotate(angle);
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillStyle = 'black';
+        ctx.font = 'bold 100px Orbitron';
+        ctx.fillText(segments[i], textRadius, 0);
+        ctx.restore();
+      }
+    }
+
+    function posMod(n, m) {
+      return ((n % m) + m) % m;
+    }
+
+    function getWinningIndex(rotation) {
+      const TAU = 2 * Math.PI;
+      const normalized = posMod(rotation, TAU);
+      const pointerOffset = -Math.PI / 2; 
+      const angleAtPointer = posMod(pointerOffset - normalized, TAU);
+      return Math.floor(angleAtPointer / segmentAngle);
+    }
+
+    drawWheel();
+
+    spinBtn.addEventListener('click', () => {
+      spinBtn.disabled = true;
+      let newIndex;
+      do {
+        const spins = Math.floor(Math.random() * 5) + 5;
+        const extra = Math.random() * 2 * Math.PI;
+        const targetRotation = currentRotation + spins * 2 * Math.PI + extra;
+
+        const duration = 5000;
+        const start = performance.now();
+        const startRotation = currentRotation;
+
+        function animate(time) {
+          const elapsed = time - start;
+          const progress = Math.min(elapsed / duration, 1);
+          currentRotation = startRotation + (targetRotation - startRotation) * easeOutCubic(progress);
+
+          ctx.save();
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+          ctx.translate(canvas.width/2, canvas.height/2);
+          ctx.rotate(currentRotation);
+          ctx.translate(-canvas.width/2, -canvas.height/2);
+          drawWheel();
+          ctx.restore();
+
+          if (progress < 1) {
+            requestAnimationFrame(animate);
+          } else {
+            newIndex = getWinningIndex(currentRotation);
+            if (newIndex === lastIndex) {
+              spinBtn.disabled = false;
+              spinBtn.click(); // перезапускаем спин если совпало
+              return;
+            }
+            lastIndex = newIndex;
+            resultOverlay.textContent = labels[newIndex];
+            resultOverlay.style.display = 'flex';
+            spinBtn.disabled = false;
+          }
+        }
+
+        requestAnimationFrame(animate);
+      } while (false);
+    });
+
+    function easeOutCubic(t) {
+      return 1 - Math.pow(1 - t, 3);
+    }
+
+    resultOverlay.addEventListener('click', () => {
+      resultOverlay.style.display = 'none';
+    });
+  </script>
+</body>
+</html>

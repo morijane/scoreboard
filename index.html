@@ -2,76 +2,103 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
-<title>Дисплей</title>
+<title>Дисплей баллов</title>
 <style>
-  body { margin: 0; font-family: 'Orbitron', sans-serif; }
-  #container { display: flex; height: 100vh; }
-  .player { flex: 1; background: black; color: cyan; display: flex; flex-direction: column; justify-content: center; align-items: center; font-size: 60px; }
-  .team { font-size: 36px; margin-top: 20px; }
+body {
+  margin: 0;
+  height: 100vh;
+  display: flex;
+  background: black;
+  color: cyan;
+  font-family: 'Orbitron', sans-serif;
+  overflow: hidden;
+}
+.player {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  font-size: 80px;
+  border-right: 1px solid #222;
+}
+.player:last-child {
+  border-right: none;
+}
+.team {
+  font-size: 40px;
+}
+#container {
+  display: flex;
+  width: 100%;
+  height: 100%;
+}
+#winnerOverlay {
+  position: fixed;
+  top:0; left:0;
+  width:100%; height:100%;
+  background:red;
+  color:white;
+  font-size:180px;
+  font-weight:bold;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  z-index:100;
+  display:none;
+  text-align:center;
+}
 </style>
 </head>
 <body>
 <div id="container">
   <div class="player">
     <div id="name1">Игрок 1</div>
+    <div class="team">БЕЛЫЙ</div>
     <div id="points1">0</div>
-    <div class="team" id="team1">БЕЛЫЙ</div>
   </div>
   <div class="player">
     <div id="name2">Игрок 2</div>
+    <div class="team">КРАСНЫЙ</div>
     <div id="points2">0</div>
-    <div class="team" id="team2">КРАСНЫЙ</div>
   </div>
 </div>
-<div id="winnerOverlay" style="position:fixed;top:0;left:0;width:100%;height:100%;background:red;color:white;display:none;justify-content:center;align-items:center;font-size:150px;font-weight:bold;z-index:100;text-align:center;">WIN</div>
-<script>
-async function updateDisplay() {
-  try {
-    const res = await fetch('/data');
-    const state = await res.json();
-    document.getElementById('name1').textContent = state.name1;
-    document.getElementById('points1').textContent = state.points1;
-    document.getElementById('team1').textContent = state.team1;
-    document.getElementById('name2').textContent = state.name2;
-    document.getElementById('points2').textContent = state.points2;
-    document.getElementById('team2').textContent = state.team2;
 
-    if(state.showWinner){
-      document.getElementById('winnerOverlay').textContent = state.winnerName + " WIN";
-      document.getElementById('winnerOverlay').style.display = 'flex';
-    } else {
-      document.getElementById('winnerOverlay').style.display = 'none';
-    }
-  } catch(e){ console.error(e); }
-}
-setInterval(updateDisplay, 500);
-</script>
-  <script>
+<div id="winnerOverlay"></div>
+
+<script>
+const winnerOverlay = document.getElementById('winnerOverlay');
+
 async function refreshDisplay(){
     try {
         const res = await fetch('/data');
         const data = await res.json();
 
-        // Если сервер сказал перейти на колесо
+        // Переключение на колесо
         if(data.page === "wheel") {
             window.location.href = '/wheel.html';
             return;
         }
 
-        // Обновляем имена и баллы
+        // Обновление имён и баллов
         document.getElementById('name1').textContent = data.name1;
         document.getElementById('points1').textContent = data.points1;
         document.getElementById('name2').textContent = data.name2;
         document.getElementById('points2').textContent = data.points2;
 
-        // Отображаем победителя
+        // Показ победителя через overlay
         if(data.showWinner){
-            document.body.innerHTML = `<div style="background:red; color:white; font-size:180px; font-weight:bold; display:flex; justify-content:center; align-items:center; height:100vh;">${data.winnerName} WIN</div>`;
+            winnerOverlay.textContent = data.winnerName + " WIN";
+            winnerOverlay.style.display = "flex";
+        } else {
+            winnerOverlay.style.display = "none";
         }
+
     } catch(e){ console.error(e); }
 }
+
+// Обновление каждые 500мс
 setInterval(refreshDisplay, 500);
 </script>
-
 </body>
 </html>
